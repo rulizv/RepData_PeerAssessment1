@@ -1,25 +1,123 @@
 ---
 title: "Reproducible Research: Peer Assessment 1"
+author: "Raul Zambrano"
+date: "April 18, 2015"
 output: 
   html_document:
     keep_md: true
 ---
 
+##What is mean total number of steps taken per day?
 
-## Loading and preprocessing the data
+1. Calculate the total number of steps taken per day
+
+```{r}
+data <- read.csv(unz("activity.zip", "activity.csv"),stringsAsFactors=FALSE)
+data$date=as.POSIXct(data$date)
+perDayTotals=aggregate(list(totalStepsPerDay = data[,1]),by=list(day=cut(data$date,"1 day")),sum)
+res.mean = mean(perDayTotals$totalStepsPerDay,na.rm = TRUE)
+res.median = median(perDayTotals$totalStepsPerDay,na.rm = TRUE)
+perDayTotals
+```
+
+2. Make a histogram of the total number of steps taken each day
+
+```{r, echo=FALSE}
+hist(perDayTotals$totalStepsPerDay,main='Total Number of Steps Taken Per Day',xlab = 'Total Daily Steps',col = 'gold')
+```
+
+3. Calculate and report the mean and median of the total number of steps taken per day
+
+Mean: `r format(res.mean,nsmall=2)`   
+
+Median: `r res.median`  
+
+##What is the average daily activity pattern?
+
+```{r}
+avgIntervals=aggregate(list(averageStepsPerInterval = data[,1]),by=list(interval=data$interval),mean,na.rm=TRUE)
+avgIntervals$interval=paste(substr(sprintf('%04d',avgIntervals$interval),1,2),':',substr(sprintf('%04d',avgIntervals$interval),3,4))
+avgIntervals$interval=strptime(avgIntervals$interval,'%H : %M')
+avgMax=which.max(x = avgIntervals$averageStepsPerInterval)
+```
+
+1. Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+
+```{r, echo=FALSE}
+plot(x = avgIntervals$interval,y = avgIntervals$averageStepsPerInterval,type='l',main='Average Number of Steps Taken',xlab = 'Hour of day',ylab = 'Steps',col='blue')
+```
+
+2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+
+The 5-minute interval with the maximum number of steps is `r format(avgIntervals[avgMax,1],'%H:%M')` with `r avgIntervals[avgMax,2]` steps.
+
+##Imputing missing values
+
+1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
+
+```{r}
+emptyRows=is.na(data$steps)
+```
+
+The number of missing values is `r sum(emptyRows)`
+
+2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
+
+The strategy is to reeplace the NA values with the average value for that specific interval
+
+3. Create a new dataset that is equal to the original dataset but with the missing data filled in.
 
 
+```{r}
+dataNoNas=data
+allIntervals=unique(data$interval)
+#Replace the NA values with the rounded average value of the time period
+#dataNoNas[emptyRows,1]=round(avgIntervals[which(allIntervals==dataNoNas[emptyRows,3]),2],0)
+emptyInts=dataNoNas[emptyRows,3]
+for (i in 1:length(emptyInts)) {
+    j = which(allIntervals==emptyInts[i])
+    emptyInts[i]=round(avgIntervals[j,2],0)
+}
+dataNoNas[emptyRows,1]=emptyInts
+```
 
-## What is mean total number of steps taken per day?
+4. Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
 
+```{r}
+perDayTotals2=aggregate(list(totalStepsPerDay = dataNoNas[,1]),by=list(day=cut(dataNoNas$date,"1 day")),sum)
+res2.mean = mean(perDayTotals2$totalStepsPerDay,na.rm = TRUE)
+res2.median = median(perDayTotals2$totalStepsPerDay,na.rm = TRUE)
+```
 
+```{r, echo=FALSE}
+hist(perDayTotals2$totalStepsPerDay,main='Total Number of Steps Taken Per Day',xlab = 'Total Daily Steps with empty data filled',col = 'gold')
+```
 
-## What is the average daily activity pattern?
+Mean: `r format(res2.mean,nsmall=2)`   
 
+Median: `r format(res2.median,nsmall=2)`  
 
+The total number of steps increases, however the average and means values are altered relatively less.
 
-## Imputing missing values
+##Are there differences in activity patterns between weekdays and weekends?
 
+1. Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
 
+```{r}
+dataNoNas[,4]=weekdays(dataNoNas$date) %in% c('Saturday','Sunday')
+names(dataNoNas)[4]='Weekend'
+dataNoNas=transform(dataNoNas,Weekend = ifelse(Weekend,'Weekend','Weekday'))
+dataNoNas$Weekend=factor(dataNoNas$Weekend)
+avgIntervals2=aggregate(list(averageStepsPerInterval = dataNoNas[,1]),by=list(interval=dataNoNas$interval,typeOfDay=dataNoNas$Weekend),mean,na.rm=TRUE)
+avgIntervals2$interval=paste(substr(sprintf('%04d',avgIntervals2$interval),1,2),':',substr(sprintf('%04d',avgIntervals2$interval),3,4))
+avgIntervals2$interval=strptime(avgIntervals2$interval,'%H : %M')
+avgIntervalsWeekdays=avgIntervals2[avgIntervals2$typeOfDay=='Weekday',]
+avgIntervalsWeekends=avgIntervals2[avgIntervals2$typeOfDay=='Weekend',]
+```
 
-## Are there differences in activity patterns between weekdays and weekends?
+```{r, echo=FALSE, fig.height= 10}
+par(mfrow = c(2,1))
+plot(x = avgIntervalsWeekdays$interval,y = avgIntervalsWeekdays$averageStepsPerInterval,type='l',main='Average Number of Steps Taken on Weekdays',xlab = 'Hour of day',ylab = 'Steps',col='blue')
+plot(x = avgIntervalsWeekends$interval,y = avgIntervalsWeekends$averageStepsPerInterval,type='l',main='Average Number of Steps Taken on Weekends',xlab = 'Hour of day',ylab = 'Steps',col='green')
+```
+
