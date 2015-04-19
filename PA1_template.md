@@ -1,4 +1,4 @@
-# PA1_template
+# ActivityMonitoring
 Raul Zambrano  
 April 18, 2015  
 
@@ -83,7 +83,7 @@ perDayTotals
 
 2. Make a histogram of the total number of steps taken each day
 
-![](ActivityMonitoing_files/figure-html/unnamed-chunk-2-1.png) 
+![](PA1_template_files/figure-html/unnamed-chunk-2-1.png) 
 
 3. Calculate and report the mean and median of the total number of steps taken per day
 
@@ -103,7 +103,7 @@ avgMax=which.max(x = avgIntervals$averageStepsPerInterval)
 
 1. Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 
-![](ActivityMonitoing_files/figure-html/unnamed-chunk-4-1.png) 
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
 
 2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 
@@ -150,7 +150,7 @@ res2.mean = mean(perDayTotals2$totalStepsPerDay,na.rm = TRUE)
 res2.median = median(perDayTotals2$totalStepsPerDay,na.rm = TRUE)
 ```
 
-![](ActivityMonitoing_files/figure-html/unnamed-chunk-8-1.png) 
+![](PA1_template_files/figure-html/unnamed-chunk-8-1.png) 
 
 Mean: 10765.64   
 
@@ -175,5 +175,5 @@ avgIntervalsWeekdays=avgIntervals2[avgIntervals2$typeOfDay=='Weekday',]
 avgIntervalsWeekends=avgIntervals2[avgIntervals2$typeOfDay=='Weekend',]
 ```
 
-![](ActivityMonitoing_files/figure-html/unnamed-chunk-10-1.png) 
+![](PA1_template_files/figure-html/unnamed-chunk-10-1.png) 
 
